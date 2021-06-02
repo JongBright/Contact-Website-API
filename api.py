@@ -49,11 +49,11 @@ def add_contact():
                 sql_formula = "INSERT INTO contacts (First_Name, Last_Name, Email, Phone) VALUES (%s, %s, %s, %s)"
                 mycursor.execute(sql_formula, contact)
                 db.connection.commit()
-                resp = jsonify("Contact added sucessfully")
+                resp = jsonify({"status": 200 ,"message": "Contact added sucessfully"})
                 resp.status_code = 200
                 return resp
             else:
-                resp = jsonify('contact not added, either Email or Phone already exist!')
+                resp = jsonify({"status": 404 ,"message": "contact not added, either Email or Phone already exist!"})
                 resp.status_code = 404
                 return resp
         else:
@@ -73,7 +73,7 @@ def view_contacts():
         resp.status_code = 200
         return resp
     except Exception as e:
-        resp = jsonify('No contacts found!')
+        resp = jsonify({"status": 404 ,"message": "No contacts found!"})
         resp.status_code = 404
         return resp
     finally:
@@ -88,12 +88,12 @@ def delete_contact(id):
         mycursor = db.connection.cursor()
         mycursor.execute('DELETE FROM contacts WHERE Phone = (%s)', (id, ))
         db.connection.commit()
-        resp = jsonify('User deleted sucessfully!')
+        resp = jsonify({"status": 200 ,"message": "contact deleted sucessfully!"})
         resp.status_code = 200
         return resp
 
     except Exception as e:
-        resp = jsonify('contact NOT found!')
+        resp = jsonify({"status": 404 ,"message": "contact NOT found!"})
         resp.status_code = 404
         return resp
     finally:
@@ -119,13 +119,14 @@ def update_contact(id):
             """, (_fname2, _lname2, _email2, _phone2, id))
 
             db.connection.commit()
-            resp = jsonify("Contact updated sucessfully!")
+
+            resp = jsonify({"status": 200 ,"message": "contact updated sucessfully!"})
             resp.status_code = 200
             return resp
         else:
             pass
     except Exception as e:
-        resp = jsonify('contact to be updated NOT found!')
+        resp = jsonify({"status": 404 ,"message": "contact to be updated NOT found!"})
         resp.status_code = 404
         return resp
     finally:
