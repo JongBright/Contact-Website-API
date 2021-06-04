@@ -45,15 +45,15 @@ def add_contact():
             tels_info = mycursor.fetchall()
             for tel in tels_info:
                 tels.append(tel[0])
-            if (contact[2] not in emails) and (contact[3] not in tels):
+            if ((contact[2] not in emails) and (contact[3] not in tels)):
                 sql_formula = "INSERT INTO contacts (First_Name, Last_Name, Email, Phone) VALUES (%s, %s, %s, %s)"
                 mycursor.execute(sql_formula, contact)
                 db.connection.commit()
-                resp = jsonify({"status": 200 ,"message": "Contact added sucessfully"})
+                resp = jsonify({"status": "Ok" ,"message": "Contact added sucessfully"})
                 resp.status_code = 200
                 return resp
             else:
-                resp = jsonify({"status": 404 ,"message": "contact not added, either Email or Phone already exist!"})
+                resp = jsonify({"status": "NOT FOUND" ,"message": "contact not added, either Email or Phone already exist!"})
                 resp.status_code = 404
                 return resp
         else:
@@ -73,11 +73,90 @@ def view_contacts():
         resp.status_code = 200
         return resp
     except Exception as e:
-        resp = jsonify({"status": 404 ,"message": "No contacts found!"})
+        resp = jsonify({"status": "NOT FOUND" ,"message": "No contacts found!"})
         resp.status_code = 404
         return resp
     finally:
         mycursor.close()
+
+
+@app.route("/search contact/<id>")
+def search_contact(id):
+
+    info = id
+    required = str(info)
+    number = len(required)
+
+    fnames = []
+    lnames = []
+    names = []
+    emails = []
+    tels = []
+
+
+    try:
+        mycursor = db.connection.cursor()
+
+        mycursor.execute('SELECT First_Name FROM contacts')
+        fnames_info = mycursor.fetchall()
+        for name in fnames_info:
+            fnames.append(str(name[0]))
+
+        mycursor.execute('SELECT Last_Name FROM contacts')
+        lnames_info = mycursor.fetchall()
+        for name in lnames_info:
+            lnames.append(str(name[0]))
+
+
+        for i in range(len(fnames)):
+            names.append(str(fnames[i] + " " + lnames[i]))
+
+
+        mycursor.execute('SELECT Email FROM contacts')
+        emails_info = mycursor.fetchall()
+        for email in emails_info:
+            emails.append(str(email[0]))
+
+        mycursor.execute('SELECT Phone FROM contacts')
+        tels_info = mycursor.fetchall()
+        for tel in tels_info:
+            tels.append(str(tel[0]))
+
+
+
+        gotten = []
+
+        for name in fnames:
+            if (name[0:(number)] == required or name[:] == required):
+                mycursor.execute('SELECT first_name First_Name, last_name Last_Name, email Email, phone Phone FROM contacts WHERE First_Name=(%s)', (str(name), ))
+                contact = mycursor.fetchall()
+                gotten.append(contact)
+
+        for email in emails:
+            if (email[0:(number)] == required or email[:] == required):
+                mycursor.execute('SELECT first_name First_Name, last_name Last_Name, email Email, phone Phone FROM contacts WHERE Email=(%s)', (str(email), ))
+                contact = mycursor.fetchall()
+                gotten.append(contact)
+
+        for tel in tels:
+            if (tel[0:(number)] == required or tel[:] == required):
+                mycursor.execute('SELECT first_name First_Name, last_name Last_Name, email Email, phone Phone FROM contacts WHERE Phone=(%s)', (int(tel), ))
+                contact = mycursor.fetchall()
+                gotten.append(contact)
+
+
+
+        resp = jsonify(gotten)
+        resp.status_code = 200
+        return resp
+
+
+    except Exception as e:
+        resp = jsonify({"status": "NOT FOUND" ,"message": "contact NOT found!"})
+        resp.status_code = 404
+        return resp
+    finally:
+        db.connection.cursor().close()
 
 
 
@@ -88,12 +167,12 @@ def delete_contact(id):
         mycursor = db.connection.cursor()
         mycursor.execute('DELETE FROM contacts WHERE Phone = (%s)', (id, ))
         db.connection.commit()
-        resp = jsonify({"status": 200 ,"message": "contact deleted sucessfully!"})
+        resp = jsonify({"status": "Ok" ,"message": "contact deleted sucessfully!"})
         resp.status_code = 200
         return resp
 
     except Exception as e:
-        resp = jsonify({"status": 404 ,"message": "contact NOT found!"})
+        resp = jsonify({"status": "NOT FOUND" ,"message": "contact NOT found!"})
         resp.status_code = 404
         return resp
     finally:
@@ -120,13 +199,13 @@ def update_contact(id):
 
             db.connection.commit()
 
-            resp = jsonify({"status": 200 ,"message": "contact updated sucessfully!"})
+            resp = jsonify({"status": "Ok" ,"message": "contact updated sucessfully!"})
             resp.status_code = 200
             return resp
         else:
             pass
     except Exception as e:
-        resp = jsonify({"status": 404 ,"message": "contact to be updated NOT found!"})
+        resp = jsonify({"status": "NOT FOUND" ,"message": "contact to be updated NOT found!"})
         resp.status_code = 404
         return resp
     finally:
